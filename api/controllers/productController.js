@@ -41,7 +41,7 @@ const addProduct = async (req, res) => {
       image: imagesUrl,
       date: Date.now(),
     };
-    console.log(productData);
+    
 
     const product = new productModel(productData);
 
@@ -74,14 +74,30 @@ const listProduct = async (req, res) => {
 // function to remove product
 const removeProduct = async (req, res) => {
   try {
+    const product = await productModel.findById(req.body.id);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Extract and delete images from Cloudinary
+    const destroyPromises = product.image.map((imageUrl) => {
+      const publicId = imageUrl.split('/').pop().split('.')[0]; // Get "nav5l0xmxqox8upuhhqs" from the URL
+      return cloudinary.uploader.destroy(publicId);
+    });
+
+    await Promise.all(destroyPromises); // Wait for all deletions
+
+    // Delete product from database
     await productModel.findByIdAndDelete(req.body.id);
-    res.json({ sucess: true, message: "Product removed" });
+
+    res.json({ success: true, message: 'Product and images removed' });
   } catch (error) {
+    console.error(error);
     res.json({
-      sucess: false,
+      success: false,
       message: error.message,
     });
-    console.log(error);
   }
 };
 
