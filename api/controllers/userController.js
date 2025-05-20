@@ -76,7 +76,7 @@ const registerUser = async (req, res) => {
     // generate token using function createToken
     const token = createtoken(user._id);
 
-    res.json({ success: true, token });
+    res.json({ success: true,message:"User registred successfully!", token });
   } catch (error) {
     console.log(error);
     res.json({success:false, message: error.message})
